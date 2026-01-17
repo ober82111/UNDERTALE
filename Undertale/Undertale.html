@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Undertale Dodge Battle - Fair Version</title>
+    <title>Undertale Dodge Challenge</title>
     <style>
         * {
             margin: 0;
@@ -13,93 +13,1029 @@
 
         body {
             background: #000;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            font-family: 'Courier New', monospace;
             overflow: hidden;
             height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         #game-container {
+            position: relative;
             width: 100vw;
             height: 100vh;
-            position: relative;
-            background: radial-gradient(circle at center, #0a001a 0%, #000 70%);
+            background: linear-gradient(45deg, #0a0a2a, #1a0033);
+            overflow: hidden;
         }
 
-        #battle-box {
+        #battle-field {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 90vw;
-            height: 80vh;
-            max-width: 1200px;
-            border: 4px solid #4a00e0;
-            border-radius: 15px;
-            overflow: hidden;
-            background: rgba(10, 0, 30, 0.9);
-            box-shadow: 0 0 50px rgba(74, 0, 224, 0.5);
+            width: 800px;
+            height: 600px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.2);
+            background: rgba(0, 0, 30, 0.7);
         }
 
-        #player {
+        #player-soul {
             position: absolute;
-            width: 26px;
-            height: 26px;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(45deg, #ff0000, #ff5555);
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #ff3366, #ff0066);
             box-shadow: 
-                0 0 20px #ff0066,
-                0 0 40px rgba(255, 0, 102, 0.5),
-                inset 0 0 10px rgba(255, 255, 255, 0.5);
-            z-index: 100;
-            transition: all 0.1s ease-out;
-            border: 2px solid #ffffff;
-            animation: pulse 2s infinite alternate;
+                0 0 15px #ff0000,
+                0 0 30px #ff0000,
+                inset 0 0 5px #ffffff;
+            z-index: 1000;
+            transition: all 0.05s;
         }
 
-        #player.safe-zone {
-            box-shadow: 
-                0 0 25px #00ff88,
-                0 0 50px rgba(0, 255, 136, 0.3);
-            border-color: #00ff88;
+        .soul-aura {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.2; }
         }
 
         .bullet {
             position: absolute;
-            border-radius: 50%;
+            transition: all 0.016s;
             pointer-events: none;
-            transition: all 0.05s linear;
-            opacity: 0.9;
         }
 
-        .bullet.safe {
-            opacity: 0.4;
-            filter: brightness(1.5);
+        /* Разные типы снарядов с уменьшенными хитбоксами */
+        .bullet-heart {
+            background: linear-gradient(45deg, #ff0066, #ff00ff);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            box-shadow: 0 0 8px #ff0066;
         }
 
-        .heart-bullet {
-            background: radial-gradient(circle at 30% 30%, #ff6699, #ff0066);
-            box-shadow: 0 0 12px #ff0066;
-        }
-
-        .bone-bullet {
-            background: linear-gradient(45deg, #ffffff, #e6e6e6);
+        .bullet-bone {
+            background: linear-gradient(45deg, #ffffff, #cccccc);
             box-shadow: 0 0 8px #ffffff;
+        }
+
+        .bullet-star {
+            background: linear-gradient(45deg, #ffff00, #ffaa00);
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            box-shadow: 0 0 10px #ffff00;
+        }
+
+        .bullet-circle {
+            background: linear-gradient(45deg, #00ff00, #00aa00);
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .bullet-diamond {
+            background: linear-gradient(45deg, #0088ff, #00ffff);
+            transform: rotate(45deg);
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .bullet-tear {
+            background: linear-gradient(45deg, #ff8800, #ffcc00);
+            border-radius: 50% 50% 50% 0;
+            box-shadow: 0 0 8px #ff8800;
+        }
+
+        .attack-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        #boss-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: center;
+            z-index: 500;
+        }
+
+        #boss-avatar {
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(0 0 15px currentColor);
+            animation: float 3s ease-in-out infinite;
+            font-size: 60px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        #boss-name {
+            font-size: 22px;
+            text-shadow: 0 0 8px currentColor;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+        }
+
+        #stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 120px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 5px currentColor;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        #health-bar {
+            height: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        #health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff5555);
+            width: 100%;
+            transition: width 0.2s ease;
+        }
+
+        #phase-indicator {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
+            overflow: hidden;
+            margin: 5px 0;
         }
 
-        .magic-bullet {
-            background: radial-gradient(circle at 30% 30%, #6699ff, #3366ff);
-            box-shadow: 0 0 12px #3366ff;
+        #phase-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #00cc00);
+            width: 0%;
+            transition: width 0.5s;
         }
 
-        .spike-bullet {
-            background: radial-gradient(circle at 30% 30%, #ff9966, #ff6600);
-            box-shadow: 0 0 10px #ff6600;
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        #attack-indicator {
+            font-size: 14px;
+            color: #ffff00;
+            text-align: center;
+            height: 20px;
+            margin-top: 5px;
+            text-shadow: 0 0 5px #ffff00;
         }
 
-       
+        #dialog-box {
+            height: 60px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #fff;
+            border-radius: 8px;
+            font-size: 16px;
+            line-height: 1.4;
+            overflow: hidden;
+        }
+
+        #dialog-text {
+            animation: typewriter 3s steps(30) infinite;
+            white-space: nowrap;
+        }
+
+        @keyframes typewriter {
+            from { transform: translateX(100%); }
+            to { transform: translateX(-100%); }
+        }
+
+        .warning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            color: #ff0000;
+            text-shadow: 0 0 20px #ff0000;
+            animation: warning 0.8s ease-in-out;
+            z-index: 2000;
+            pointer-events: none;
+        }
+
+        @keyframes warning {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .damage-flash {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.2);
+            pointer-events: none;
+            animation: flash 0.2s;
+            z-index: 999;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .phase-change {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            animation: phaseChange 1.5s forwards;
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        @keyframes phaseChange {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .controls-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 0 2px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .combo-counter {
+            position: absolute;
+            top: 150px;
+            left: 20px;
+            font-size: 18px;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="battle-field">
+            <div id="player-soul"></div>
+            <div class="soul-aura"></div>
+        </div>
+        
+        <div class="controls-info">
+            <div>Управление: <span class="key">←</span> <span class="key">→</span> <span class="key">↑</span> <span class="key">↓</span></div>
+            <div style="margin-top: 5px; font-size: 12px; opacity: 0.8;">Уклоняйтесь от атак 2 минуты!</div>
+        </div>
+        
+        <div class="combo-counter" id="combo-counter">Combo: 0</div>
+        
+        <div id="boss-container">
+            <div id="boss-avatar">👑</div>
+            <div id="boss-name">SAN$</div>
+        </div>
+        
+        <div id="ui-overlay">
+            <div id="stats">
+                <div class="stat-box" style="color: #ff5555;">
+                    <div class="stat-value" id="time-left">2:00</div>
+                    <div class="stat-label">ВРЕМЯ</div>
+                </div>
+                <div class="stat-box" style="color: #ffff00;">
+                    <div class="stat-value" id="phase-number">1</div>
+                    <div class="stat-label">ФАЗА</div>
+                </div>
+                <div class="stat-box" style="color: #00ffff;">
+                    <div class="stat-value" id="dodge-count">0</div>
+                    <div class="stat-label">УКЛОНЕНИЙ</div>
+                </div>
+                <div class="stat-box" style="color: #ff00ff;">
+                    <div class="stat-value" id="attack-count">1</div>
+                    <div class="stat-label">АТАКА</div>
+                </div>
+            </div>
+            
+            <div id="health-bar">
+                <div id="health-fill"></div>
+            </div>
+            
+            <div id="phase-indicator">
+                <div id="phase-progress"></div>
+            </div>
+            
+            <div id="attack-indicator" id="current-attack">Аркадный дождь</div>
+            
+            <div id="dialog-box">
+                <div id="dialog-text">* SAN$ начинает испытание. Уклоняйтесь от атак 2 минуты! *</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DodgeChallengeGame {
+            constructor() {
+                this.config = {
+                    playerSpeed: 6,
+                    playerSize: 8, // Размер хитбокса души
+                    bulletHitboxMultiplier: 0.6, // Уменьшение хитбокса снарядов
+                    gameTime: 120, // 2 минуты
+                    phases: 6,
+                    baseBulletSpeed: 2
+                };
+
+                this.state = {
+                    player: {
+                        x: 400,
+                        y: 300,
+                        hp: 100,
+                        maxHp: 100,
+                        invulnerable: false,
+                        dodgeCombo: 0,
+                        totalDodges: 0
+                    },
+                    game: {
+                        timeLeft: 120,
+                        currentPhase: 1,
+                        currentAttack: 0,
+                        isActive: true,
+                        bulletSpeed: 2,
+                        attackInterval: 2000,
+                        bullets: [],
+                        activePatterns: [],
+                        keys: {
+                            up: false,
+                            down: false,
+                            left: false,
+                            right: false
+                        }
+                    },
+                    attacks: [
+                        { name: "Аркадный дождь", color: "#ff0066", duration: 10 },
+                        { name: "Костяные барьеры", color: "#ffffff", duration: 12 },
+                        { name: "Звёздный шторм", color: "#ffff00", duration: 15 },
+                        { name: "Круговой огонь", color: "#00ff00", duration: 12 },
+                        { name: "Ромбовидный шквал", color: "#00ffff", duration: 10 },
+                        { name: "Слезный поток", color: "#ff8800", duration: 14 },
+                        { name: "Спиральная буря", color: "#ff00ff", duration: 20 },
+                        { name: "Хаотический взрыв", color: "#ff0000", duration: 8 }
+                    ]
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.setupControls();
+                this.setupGame();
+                this.gameLoop();
+                this.startGame();
+            }
+
+            setupControls() {
+                // Обработка нажатий клавиш
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key) {
+                        case 'ArrowUp':
+                        case 'w':
+                            this.state.game.keys.up = true;
+                            break;
+                        case 'ArrowDown':
+                        case 's':
+                            this.state.game.keys.down = true;
+                            break;
+                        case 'ArrowLeft':
+                        case 'a':
+                            this.state.game.keys.left = true;
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                            this.state.game.keys.right = true;
+                            break;
+                    }
+                    e.preventDefault();
+                });
+
+                // Обработка отпускания клавиш
+                document.addEventListener('keyup', (e) => {
+                    switch(e.key) {
+                        case 'ArrowUp':
+                        case 'w':
+                            this.state.game.keys.up = false;
+                            break;
+                        case 'ArrowDown':
+                        case 's':
+                            this.state.game.keys.down = false;
+                            break;
+                        case 'ArrowLeft':
+                        case 'a':
+                            this.state.game.keys.left = false;
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                            this.state.game.keys.right = false;
+                            break;
+                    }
+                    e.preventDefault();
+                });
+
+                // Запрет прокрутки страницы
+                document.addEventListener('keydown', (e) => {
+                    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            setupGame() {
+                this.updatePlayerPosition();
+                this.updateUI();
+            }
+
+            startGame() {
+                this.startTimer();
+                this.startAttackCycle();
+            }
+
+            updatePlayer() {
+                if (!this.state.game.isActive) return;
+
+                const speed = this.config.playerSpeed;
+                const field = document.getElementById('battle-field');
+                const rect = field.getBoundingClientRect();
+                
+                // Движение с учетом нажатых клавиш
+                if (this.state.game.keys.left) this.state.player.x = Math.max(10, this.state.player.x - speed);
+                if (this.state.game.keys.right) this.state.player.x = Math.min(rect.width - 10, this.state.player.x + speed);
+                if (this.state.game.keys.up) this.state.player.y = Math.max(10, this.state.player.y - speed);
+                if (this.state.game.keys.down) this.state.player.y = Math.min(rect.height - 10, this.state.player.y + speed);
+
+                this.updatePlayerPosition();
+            }
+
+            updatePlayerPosition() {
+                const soul = document.getElementById('player-soul');
+                if (soul) {
+                    soul.style.left = `${this.state.player.x - 8}px`;
+                    soul.style.top = `${this.state.player.y - 8}px`;
+                    
+                    // Эффект при движении
+                    if (this.state.game.keys.up || this.state.game.keys.down || 
+                        this.state.game.keys.left || this.state.game.keys.right) {
+                        soul.style.boxShadow = '0 0 20px #ff0000, 0 0 40px #ff0000, inset 0 0 8px #ffffff';
+                    } else {
+                        soul.style.boxShadow = '0 0 15px #ff0000, 0 0 30px #ff0000, inset 0 0 5px #ffffff';
+                    }
+                }
+            }
+
+            startTimer() {
+                this.timerInterval = setInterval(() => {
+                    if (!this.state.game.isActive) return;
+                    
+                    this.state.game.timeLeft--;
+                    this.updateTimeDisplay();
+                    
+                    // Обновляем скорость атак каждые 30 секунд
+                    if (this.state.game.timeLeft % 30 === 0 && this.state.game.timeLeft > 0) {
+                        this.increaseDifficulty();
+                    }
+                    
+                    if (this.state.game.timeLeft <= 0) {
+                        this.victory();
+                    }
+                }, 1000);
+            }
+
+            updateTimeDisplay() {
+                const minutes = Math.floor(this.state.game.timeLeft / 60);
+                const seconds = this.state.game.timeLeft % 60;
+                document.getElementById('time-left').textContent = 
+                    `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                if (this.state.game.timeLeft < 30) {
+                    document.getElementById('time-left').style.animation = 'warning 1s infinite';
+                }
+            }
+
+            increaseDifficulty() {
+                this.state.game.bulletSpeed *= 1.2;
+                this.state.game.attackInterval = Math.max(800, this.state.game.attackInterval - 200);
+                
+                if (this.state.game.currentPhase < this.config.phases) {
+                    this.state.game.currentPhase++;
+                    this.showPhaseTransition();
+                }
+                
+                this.updatePhaseDisplay();
+            }
+
+            showPhaseTransition() {
+                const phaseChange = document.createElement('div');
+                phaseChange.className = 'phase-change';
+                phaseChange.textContent = `ФАЗА ${this.state.game.currentPhase}`;
+                phaseChange.style.color = this.state.attacks[this.state.game.currentPhase % this.state.attacks.length].color;
+                
+                document.getElementById('game-container').appendChild(phaseChange);
+                
+                setTimeout(() => {
+                    phaseChange.remove();
+                }, 1500);
+            }
+
+            startAttackCycle() {
+                this.attackInterval = setInterval(() => {
+                    if (!this.state.game.isActive) return;
+                    
+                    this.launchRandomAttack();
+                }, this.state.game.attackInterval);
+            }
+
+            launchRandomAttack() {
+                const attackIndex = Math.floor(Math.random() * this.state.attacks.length);
+                this.state.game.currentAttack = attackIndex;
+                const attack = this.state.attacks[attackIndex];
+                
+                this.showAttackWarning(attack.name);
+                this.updateAttackDisplay();
+                
+                // Запускаем выбранную атаку
+                switch(attackIndex) {
+                    case 0: this.arcadeRain(); break;
+                    case 1: this.boneBarriers(); break;
+                    case 2: this.starStorm(); break;
+                    case 3: this.circleFire(); break;
+                    case 4: this.diamondHail(); break;
+                    case 5: this.tearStream(); break;
+                    case 6: this.spiralStorm(); break;
+                    case 7: this.chaosBurst(); break;
+                }
+            }
+
+            showAttackWarning(name) {
+                const warning = document.createElement('div');
+                warning.className = 'warning';
+                warning.textContent = name;
+                warning.style.fontSize = '28px';
+                
+                document.getElementById('game-container').appendChild(warning);
+                
+                setTimeout(() => {
+                    warning.remove();
+                }, 800);
+            }
+
+            updateAttackDisplay() {
+                const attack = this.state.attacks[this.state.game.currentAttack];
+                const indicator = document.getElementById('attack-indicator');
+                indicator.textContent = attack.name;
+                indicator.style.color = attack.color;
+                indicator.style.textShadow = `0 0 5px ${attack.color}`;
+                
+                document.getElementById('attack-count').textContent = this.state.game.currentAttack + 1;
+            }
+
+            updatePhaseDisplay() {
+                document.getElementById('phase-number').textContent = this.state.game.currentPhase;
+                
+                // Обновляем прогресс фазы
+                const phaseProgress = ((this.config.gameTime - this.state.game.timeLeft) % 30) / 30 * 100;
+                document.getElementById('phase-progress').style.width = `${phaseProgress}%`;
+            }
+
+            // РАЗНЫЕ АТАКИ С УМЕНЬШЕННЫМИ ХИТБОКСАМИ
+
+            arcadeRain() {
+                const bullets = [];
+                const columns = 8;
+                
+                for (let i = 0; i < columns; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        bullets.push({
+                            x: 100 + i * 80,
+                            y: -30 - j * 40,
+                            vx: 0,
+                            vy: 3 * this.state.game.bulletSpeed,
+                            type: 'heart',
+                            size: 12,
+                            rotation: 0,
+                            hitboxSize: 12 * this.config.bulletHitboxMultiplier
+                        });
+                    }
+                }
+                
+                this.state.game.bullets.push(...bullets);
+            }
+
+            boneBarriers() {
+                const bullets = [];
+                const rows = 6;
+                
+                for (let i = 0; i < rows; i++) {
+                    bullets.push({
+                        x: 800,
+                        y: 50 + i * 90,
+                        vx: -4 * this.state.game.bulletSpeed,
+                        vy: 0,
+                        type: 'bone',
+                        size: 60,
+                        width: 80,
+                        height: 15,
+                        rotation: 0,
+                        hitboxSize: 15 * this.config.bulletHitboxMultiplier
+                    });
+                }
+                
+                this.state.game.bullets.push(...bullets);
+            }
+
+            starStorm() {
+                const bullets = [];
+                const count = 15;
+                
+                for (let i = 0; i < count; i++) {
+                    bullets.push({
+                        x: Math.random() * 800,
+                        y: Math.random() * 600,
+                        vx: (Math.random() - 0.5) * 5 * this.state.game.bulletSpeed,
+                        vy: (Math.random() - 0.5) * 5 * this.state.game.bulletSpeed,
+                        type: 'star',
+                        size: 20,
+                        rotation: Math.random() * 360,
+                        hitboxSize: 20 * this.config.bulletHitboxMultiplier * 0.8 // Звезды имеют сложную форму
+                    });
+                }
+                
+                this.state.game.bullets.push(...bullets);
+            }
+
+            circleFire() {
+                const centerX = 400;
+                const centerY = 300;
+                const bullets = 24;
+                const radius = 150;
+                
+                for (let i = 0; i < bullets; i++) {
+                    const angle = (i / bullets) * Math.PI * 2;
+                    bullets.push({
+                        x: centerX + Math.cos(angle) * radius,
+                        y: centerY + Math.sin(angle) * radius,
+                        vx: Math.cos(angle) * 2 * this.state.game.bulletSpeed,
+                        vy: Math.sin(angle) * 2 * this.state.game.bulletSpeed,
+                        type: 'circle',
+                        size: 16,
+                        rotation: 0,
+                        hitboxSize: 16 * this.config.bulletHitboxMultiplier
+                    });
+                }
+                
+                this.state.game.bullets.push(...bullets);
+            }
+
+            diamondHail() {
+                const bullets = [];
+                const grid = 5;
+                
+                for (let i = 0; i < grid; i++) {
+                    for (let j = 0; j < grid; j++) {
+                        bullets.push({
+                            x: 50 + i * 175,
+                            y: -40 - j * 30,
+                            vx: 0,
+                            vy: 2.5 * this.state.game.bulletSpeed,
+                            type: 'diamond',
+                            size: 18,
+                            rotation: 45,
+                            hitboxSize: 18 * this.config.bulletHitboxMultiplier * 0.7 // Ромбы меньше по площади
+                        });
+                    }
+                }
+                
+                this.state.game.bullets.push(...bullets);
+            }
+
+            tearStream() {
+                const bullets = [];
+                const streams = 4;
+                
+                for (let s = 0; s < streams; s++) {
+                    for (let i = 0; i < 8; i++) {
+                        bullets.push({
+                            x: 200 + s * 150,
+                            y: -20 - i * 25,
+                            vx: (Math.random() - 0.5) * 1.5,
+                            vy: 2.8 * this.state.game.bulletSpeed,
+                            type: 'tear',
+                            size: 14,
+                            rotation: Math.random() * 30,
+                            hitboxSize: 14 * this.config.bulletHitboxMultiplier * 0.6 // Слезы очень маленькие
+                        });
+                    }
+                }
+                
+                this.state.game.bullets.push(...bullets);
+            }
+
+            spiralStorm() {
+                const centerX = 400;
+                const centerY = 300;
+                const arms = 3;
+                const pointsPerArm = 12;
+                
+                for (let arm = 0; arm < arms; arm++) {
+                    for (let i = 0; i < pointsPerArm; i++) {
+                        const angle = (arm / arms) * Math.PI * 2 + (i / pointsPerArm) * Math.PI;
+                        const radius = 50 + i * 20;
+                        
+                        this.state.game.bullets.push({
+                            x: centerX + Math.cos(angle) * radius,
+                            y: centerY + Math.sin(angle) * radius,
+                            vx: Math.cos(angle + Math.PI/2) * 1.5 * this.state.game.bulletSpeed,
+                            vy: Math.sin(angle + Math.PI/2) * 1.5 * this.state.game.bulletSpeed,
+                            type: 'heart',
+                            size: 10,
+                            rotation: 0,
+                            hitboxSize: 10 * this.config.bulletHitboxMultiplier
+                        });
+                    }
+                }
+            }
+
+            chaosBurst() {
+                const centerX = 400;
+                const centerY = 300;
+                const count = 40;
+                
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 3;
+                    
+                    this.state.game.bullets.push({
+                        x: centerX,
+                        y: centerY,
+                        vx: Math.cos(angle) * speed * this.state.game.bulletSpeed,
+                        vy: Math.sin(angle) * speed * this.state.game.bulletSpeed,
+                        type: Math.random() > 0.5 ? 'star' : 'circle',
+                        size: 8 + Math.random() * 12,
+                        rotation: Math.random() * 360,
+                        hitboxSize: (8 + Math.random() * 12) * this.config.bulletHitboxMultiplier * 0.8
+                    });
+                }
+            }
+
+            updateBullets() {
+                // Обновляем позиции снарядов
+                this.state.game.bullets.forEach(bullet => {
+                    bullet.x += bullet.vx;
+                    bullet.y += bullet.vy;
+                    
+                    if (bullet.rotation !== undefined) {
+                        bullet.rotation += 2;
+                    }
+                });
+                
+                // Удаляем снаряды за пределами экрана с запасом
+                this.state.game.bullets = this.state.game.bullets.filter(bullet => {
+                    return bullet.x > -100 && bullet.x < 900 && 
+                           bullet.y > -100 && bullet.y < 700;
+                });
+            }
+
+            checkCollisions() {
+                if (this.state.player.invulnerable || !this.state.game.isActive) return;
+                
+                const playerRadius = this.config.playerSize;
+                const playerX = this.state.player.x;
+                const playerY = this.state.player.y;
+                
+                let hit = false;
+                
+                // Проверяем коллизии с уменьшенными хитбоксами
+                this.state.game.bullets = this.state.game.bullets.filter(bullet => {
+                    const dx = bullet.x - playerX;
+                    const dy = bullet.y - playerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Используем уменьшенный хитбокс снаряда
+                    const bulletRadius = bullet.hitboxSize || (bullet.size / 2) * this.config.bulletHitboxMultiplier;
+                    const minDistance = playerRadius + bulletRadius;
+                    
+                    if (distance < minDistance) {
+                        hit = true;
+                        return false; // Удаляем снаряд при попадании
+                    }
+                    
+                    return true;
+                });
+                
+                if (hit) {
+                    this.takeDamage(15);
+                    this.state.player.dodgeCombo = 0;
+                    this.updateComboCounter();
+                } else if (this.state.game.bullets.length > 0) {
+                    // Увеличиваем комбо если не попали
+                    this.state.player.dodgeCombo++;
+                    this.state.player.totalDodges++;
+                    this.updateComboCounter();
+                }
+            }
+
+            takeDamage(amount) {
+                this.state.player.hp = Math.max(0, this.state.player.hp - amount);
+                this.updateHealthDisplay();
+                
+                // Эффект мигания
+                this.state.player.invulnerable = true;
+                const flash = document.createElement('div');
+                flash.className = 'damage-flash';
+                document.getElementById('game-container').appendChild(flash);
+                
+                setTimeout(() => {
+                    flash.remove();
+                    this.state.player.invulnerable = false;
+                }, 300);
+                
+                if (this.state.player.hp <= 0) {
+                    this.gameOver();
+                }
+            }
+
+            updateHealthDisplay() {
+                const percent = (this.state.player.hp / this.state.player.maxHp) * 100;
+                document.getElementById('health-fill').style.width = `${percent}%`;
+                
+                // Меняем цвет при низком HP
+                if (percent < 30) {
+                    document.getElementById('health-fill').style.background = 'linear-gradient(90deg, #ff0000, #990000)';
+                } else if (percent < 60) {
+                    document.getElementById('health-fill').style.background = 'linear-gradient(90deg, #ff8800, #ff0000)';
+                }
+            }
+
+            updateComboCounter() {
+                const counter = document.getElementById('combo-counter');
+                counter.textContent = `Combo: ${this.state.player.dodgeCombo}`;
+                
+                // Эффекты при высоком комбо
+                if (this.state.player.dodgeCombo > 20) {
+                    counter.style.color = '#ffff00';
+                    counter.style.fontSize = '22px';
+                } else if (this.state.player.dodgeCombo > 10) {
+                    counter.style.color = '#00ff00';
+                    counter.style.fontSize = '20px';
+                } else {
+                    counter.style.color = '#00ffff';
+                    counter.style.fontSize = '18px';
+                }
+                
+                document.getElementById('dodge-count').textContent = this.state.player.totalDodges;
+            }
+
+            updateUI() {
+                this.updateHealthDisplay();
+                this.updateTimeDisplay();
+                this.updatePhaseDisplay();
+                this.updateAttackDisplay();
+                this.updateComboCounter();
+            }
+
+            renderBullets() {
+                const field = document.getElementById('battle-field');
+                const oldBullets = field.querySelectorAll('.bullet');
+                oldBullets.forEach(b => b.remove());
+                
+                this.state.game.bullets.forEach(bullet => {
+                    const bulletEl = document.createElement('div');
+                    bulletEl.className = `bullet bullet-${bullet.type}`;
+                    
+                    // Позиционирование
+                    bulletEl.style.left = `${bullet.x - (bullet.size || bullet.width)/2}px`;
+                    bulletEl.style.top = `${bullet.y - (bullet.size || bullet.height)/2}px`;
+                    
+                    // Размеры
+                    if (bullet.width && bullet.height) {
+                        bulletEl.style.width = `${bullet.width}px`;
+                        bulletEl.style.height = `${bullet.height}px`;
+                    } else {
+                        bulletEl.style.width = `${bullet.size}px`;
+                        bulletEl.style.height = `${bullet.size}px`;
+                    }
+                    
+                    // Вращение
+                    if (bullet.rotation) {
+                        bulletEl.style.transform = `rotate(${bullet.rotation}deg)`;
+                    }
+                    
+                    field.appendChild(bulletEl);
+                });
+            }
+
+            gameLoop() {
+                if (!this.state.game.isActive) return;
+                
+                this.updatePlayer();
+                this.updateBullets();
+                this.checkCollisions();
+                this.renderBullets();
+                this.updateUI();
+                
+                requestAnimationFrame(() => this.gameLoop());
+            }
+
+            gameOver() {
+                this.state.game.isActive = false;
+                clearInterval(this.timerInterval);
+                clearInterval(this.attackInterval);
+                
+                setTimeout(() => {
+                    alert(`ИГРА ОКОНЧЕНА\n\nРезультаты:\nВремя: ${Math.floor((120 - this.state.game.timeLeft) / 60)}:${(120 - this.state.game.timeLeft) % 60}\nФаза: ${this.state.game.currentPhase}\nУклонений: ${this.state.player.totalDodges}\nМакс. комбо: ${this.state.player.dodgeCombo}\n\nНажмите F5 для новой попытки.`);
+                }, 1000);
+            }
+
+            victory() {
+                this.state.game.isActive = false;
+                clearInterval(this.timerInterval);
+                clearInterval(this.attackInterval);
+                
+                // Победная анимация
+                const victoryInterval = setInterval(() => {
+                    this.state.game.bullets.push({
+                        x: Math.random() * 800,
+                        y: 600,
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: -3 - Math.random() * 2,
+                        type: ['heart', 'star', 'circle'][Math.floor(Math.random() * 3)],
+                        size: 10 + Math.random() * 15,
+                        rotation: Math.random() * 360,
+                        hitboxSize: 0 // Без хитбокса для анимации
+                    });
+                }, 100);
+                
+                setTimeout(() => {
+                    clearInterval(victoryInterval);
+                    this.state.game.bullets = [];
+                    
+                    alert(`ПОБЕДА!\n\nВы продержались 2 минуты!\n\nСтатистика:\nФинальная фаза: ${this.state.game.currentPhase}\nВсего уклонений: ${this.state.player.totalDodges}\nМаксимальное комбо: ${this.state.player.dodgeCombo}\nОставшееся HP: ${this.state.player.hp}%\n\nНажмите F5 для новой попытки с увеличенной сложностью!`);
+                }, 3000);
+            }
+        }
+
+        // Запуск игры
+        window.addEventListener('load', () => {
+            new DodgeChallengeGame();
+        });
+    </script>
+</body>
+</html>
